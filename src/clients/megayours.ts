@@ -1,5 +1,5 @@
-import { Session } from '@chromia/ft4';
-import { IClient } from 'postchain-client';
+import type { Session } from '@chromia/ft4';
+import type { IClient } from 'postchain-client';
 import { TokenMetadata } from '../types';
 import { performCrossChainTransfer } from '../utils/crosschain';
 import { serializeTokenMetadata } from '../utils';
