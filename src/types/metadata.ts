@@ -1,4 +1,4 @@
-import { RawGtv } from "postchain-client";
+import { RawGtv } from 'postchain-client';
 
 export type Attribute = {
   trait_type: string;
@@ -28,11 +28,10 @@ export type Property = {
 
 export type TokenMetadata = {
   name: string;
-  description: string;
-  image: string;
-  animation_url: string;
+  description?: string;
+  image?: string;
+  animation_url?: string;
   yours: YoursMetadata;
-  decimals?: number;
   properties: {
     [key: string]: string | number | boolean | Property;
   };
