@@ -1,0 +1,41 @@
+{
+  "name": "@megayours/sdk",
+  "version": "0.1.0",
+  "description": "SDK for connecting to MegaYours blockchains",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "prepublishOnly": "npm run build",
+    "prepare": "husky"
+  },
+  "keywords": [
+    "blockchain",
+    "sdk",
+    "megayours"
+  ],
+  "author": "MegaYours",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "lint-staged": {
+    "*": "prettier --ignore-unknown --write",
+    "*.{js,ts,d.ts}": "eslint --fix"
+  },
+  "dependencies": {
+    "postchain-client": "^1.17.0"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.4.0",
+    "@commitlint/config-conventional": "^19.2.2",
+    "@typescript-eslint/eslint-plugin": "^8.2.0",
+    "@typescript-eslint/parser": "^8.2.0",
+    "eslint": "^9.9.1",
+    "husky": "^9.1.5",
+    "lint-staged": "^15.2.9",
+    "prettier": "^3.3.3",
+    "typescript-eslint": "^8.2.0"
+  }
+}
