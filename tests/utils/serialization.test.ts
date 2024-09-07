@@ -15,6 +15,7 @@ describe('Serialization', () => {
         modules: ['test module'],
         project: {
           name: 'test project',
+          blockchain_rid: Buffer.from('DEADBEEF', 'hex'),
           owner_id: Buffer.from('DEADBEEF', 'hex'),
         },
         collection: 'test collection',
@@ -54,6 +55,7 @@ describe('Serialization', () => {
         modules: ['test module'],
         project: {
           name: 'test project',
+          blockchain_rid: Buffer.from('DEADBEEF', 'hex'),
           owner_id: Buffer.from('DEADBEEF', 'hex'),
         },
         collection: 'test collection',

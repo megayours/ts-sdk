@@ -32,6 +32,7 @@ describe('createMegaYoursClient', () => {
           modules: [],
           project: {
             name: 'testProject',
+            blockchain_rid: Buffer.from('DEADBEEF', 'hex'),
             owner_id: Buffer.from('testOwnerId'),
           },
           collection: 'testCollection',

@@ -13,6 +13,7 @@ export type YoursMetadata = {
 
 export type ProjectMetadata = {
   name: string;
+  blockchain_rid: Buffer;
   owner_id: Buffer;
 };
 
