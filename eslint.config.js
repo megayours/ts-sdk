@@ -8,6 +8,10 @@ export default tseslint.config(
     languageOptions: {
       ecmaVersion: 2021,
       sourceType: 'module',
+      parser: tseslint.parser,
+      parserOptions: {
+        project: ['./tsconfig.json', './tsconfig.test.json'],
+      },
     },
     files: ['**/*.ts', '**/*.tsx'],
     rules: {
