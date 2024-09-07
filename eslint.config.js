@@ -10,7 +10,11 @@ export default tseslint.config(
       sourceType: 'module',
       parser: tseslint.parser,
       parserOptions: {
-        project: ['./tsconfig.json', './tsconfig.test.json'],
+        project: [
+          './tsconfig.json',
+          './tsconfig.test.json',
+          './tsconfig.build.json',
+        ],
       },
     },
     files: ['**/*.ts', '**/*.tsx'],
