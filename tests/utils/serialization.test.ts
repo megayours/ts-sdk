@@ -1,13 +1,10 @@
-import { TokenMetadata } from '../../src/types/metadata';
-import { serializeTokenMetadata } from '../../src/utils/serialization';
+import { TokenMetadata } from '../../src/core/types/metadata';
+import { serializeTokenMetadata } from '../../src/core/utils/serialization';
 
 describe('Serialization', () => {
   it('should serialize and deserialize TokenMetadata correctly', () => {
     const metadata: TokenMetadata = {
       name: 'test name',
-      description: 'test description',
-      image: 'test image',
-      animation_url: 'test animation url',
       properties: {
         test: 'test property',
       },
@@ -24,7 +21,7 @@ describe('Serialization', () => {
 
     const serialized = serializeTokenMetadata(metadata);
     expect(serialized).toBeInstanceOf(Array);
-    expect(serialized.length).toBe(6);
+    expect(serialized.length).toBe(3);
 
     expect(serialized[0]).toBe(metadata.name);
 
@@ -39,10 +36,6 @@ describe('Serialization', () => {
     expect(project[1]).toEqual(metadata.yours.project.owner_id);
 
     expect(yours[2]).toBe(metadata.yours.collection);
-
-    expect(serialized[3]).toBe(metadata.description);
-    expect(serialized[4]).toBe(metadata.image);
-    expect(serialized[5]).toBe(metadata.animation_url);
   });
 
   it('should serialize TokenMetadata with null values', () => {
@@ -64,7 +57,7 @@ describe('Serialization', () => {
 
     const serialized = serializeTokenMetadata(metadata);
     expect(serialized).toBeInstanceOf(Array);
-    expect(serialized.length).toBe(6);
+    expect(serialized.length).toBe(3);
 
     expect(serialized[0]).toBe(metadata.name);
 
@@ -79,9 +72,5 @@ describe('Serialization', () => {
     expect(project[1]).toEqual(metadata.yours.project.owner_id);
 
     expect(yours[2]).toBe(metadata.yours.collection);
-
-    expect(serialized[3]).toBe(null);
-    expect(serialized[4]).toBe(null);
-    expect(serialized[5]).toBe(null);
   });
 });

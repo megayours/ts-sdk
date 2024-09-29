@@ -1,13 +1,16 @@
 import { Session } from '@chromia/ft4';
 import { IClient } from 'postchain-client';
-import { createMegaYoursClient, IMegaYoursClient } from '../../src/clients';
-import { TokenMetadata } from '../../src/types';
-import { serializeTokenMetadata } from '../../src/utils';
-import { performCrossChainTransfer } from '../../src/utils/crosschain';
+import {
+  createMegaYoursClient,
+  IMegaYoursClient,
+} from '../../src/core/clients';
+import { TokenMetadata } from '../../src/core/types';
+import { serializeTokenMetadata } from '../../src/core/utils';
+import { performCrossChainTransfer } from '../../src/core/utils/crosschain';
 
 // Mock the external modules and functions
-jest.mock('../../src/utils/crosschain');
-jest.mock('../../src/utils');
+jest.mock('../../src/core/utils/crosschain');
+jest.mock('../../src/core/utils');
 
 describe('createMegaYoursClient', () => {
   let mockSession: jest.Mocked<Session>;
@@ -39,7 +42,6 @@ describe('createMegaYoursClient', () => {
         },
         properties: {},
         name: 'Test Token',
-        description: 'A test token',
       };
       const mockSerializedMetadata = 'serialized_metadata';
 

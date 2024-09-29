@@ -27,11 +27,11 @@ export type Property = {
   };
 };
 
-export type TokenMetadata = {
+export type RootMetadata = {
   name: string;
-  description?: string;
-  image?: string;
-  animation_url?: string;
+};
+
+export type TokenMetadata = RootMetadata & {
   yours: YoursMetadata;
   properties: {
     [key: string]: string | number | boolean | Property;

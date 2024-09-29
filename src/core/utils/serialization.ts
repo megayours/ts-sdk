@@ -15,9 +15,6 @@ export function serializeTokenMetadata(metadata: TokenMetadata): any[] {
     metadata.name,
     JSON.stringify(metadata.properties),
     yours,
-    metadata.description ?? null,
-    metadata.image ?? null,
-    metadata.animation_url ?? null,
   ];
 
   return result;

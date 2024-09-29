@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { IClient, RawGtv } from 'postchain-client';
 import {
   noopAuthenticator,
