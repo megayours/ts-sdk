@@ -14,7 +14,6 @@ export type YoursMetadata = {
 export type ProjectMetadata = {
   name: string;
   blockchain_rid: Buffer;
-  owner_id: Buffer;
 };
 
 export type Property = {
@@ -27,11 +26,8 @@ export type Property = {
   };
 };
 
-export type RootMetadata = {
+export type TokenMetadata = {
   name: string;
-};
-
-export type TokenMetadata = RootMetadata & {
   yours: YoursMetadata;
   properties: {
     [key: string]: string | number | boolean | Property;

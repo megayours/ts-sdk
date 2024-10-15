@@ -13,7 +13,6 @@ describe('Serialization', () => {
         project: {
           name: 'test project',
           blockchain_rid: Buffer.from('DEADBEEF', 'hex'),
-          owner_id: Buffer.from('DEADBEEF', 'hex'),
         },
         collection: 'test collection',
       },
@@ -33,7 +32,7 @@ describe('Serialization', () => {
 
     const project = yours[1];
     expect(project[0]).toBe(metadata.yours.project.name);
-    expect(project[1]).toEqual(metadata.yours.project.owner_id);
+    expect(project[1]).toEqual(metadata.yours.project.blockchain_rid);
 
     expect(yours[2]).toBe(metadata.yours.collection);
   });
@@ -49,7 +48,6 @@ describe('Serialization', () => {
         project: {
           name: 'test project',
           blockchain_rid: Buffer.from('DEADBEEF', 'hex'),
-          owner_id: Buffer.from('DEADBEEF', 'hex'),
         },
         collection: 'test collection',
       },
@@ -69,8 +67,7 @@ describe('Serialization', () => {
 
     const project = yours[1];
     expect(project[0]).toBe(metadata.yours.project.name);
-    expect(project[1]).toEqual(metadata.yours.project.owner_id);
-
+    expect(project[1]).toEqual(metadata.yours.project.blockchain_rid);
     expect(yours[2]).toBe(metadata.yours.collection);
   });
 });
