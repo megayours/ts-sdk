@@ -48,12 +48,15 @@ describe('createMegaYoursClient', () => {
         mockSerializedMetadata
       );
 
+      (mockSession.query as jest.Mock).mockResolvedValue(mockMetadata);
+
       await client.transferCrosschain(
         mockToChain,
         mockToAccountId,
+        mockMetadata.yours.project.name,
+        mockMetadata.yours.collection,
         mockTokenId,
-        mockAmount,
-        mockMetadata
+        mockAmount
       );
 
       expect(performCrossChainTransfer).toHaveBeenCalledWith(

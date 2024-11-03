@@ -8,9 +8,10 @@ export interface IMegaYoursClient extends Session {
   transferCrosschain(
     toChain: IClient,
     toAccountId: Buffer,
+    project: string,
+    collection: string,
     tokenId: number,
-    amount: number,
-    metadata: TokenMetadata
+    amount: number
   ): Promise<void>;
   getMetadata(
     project: string,
@@ -19,16 +20,40 @@ export interface IMegaYoursClient extends Session {
   ): Promise<TokenMetadata>;
 }
 
+const fetchMetadata = async (
+  session: Session,
+  project: string,
+  collection: string,
+  tokenId: number
+) => {
+  return session.query<TokenMetadata>('megayours.metadata', {
+    project,
+    collection,
+    token_id: tokenId,
+  });
+};
+
 export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
   return Object.freeze({
     ...session,
-    transferCrosschain: (
+    getMetadata: (project: string, collection: string, tokenId: number) => {
+      return fetchMetadata(session, project, collection, tokenId);
+    },
+    transferCrosschain: async (
       toChain: IClient,
       toAccountId: Buffer,
+      project: string,
+      collection: string,
       tokenId: number,
-      amount: number,
-      metadata: TokenMetadata
+      amount: number
     ) => {
+      const metadata = await fetchMetadata(
+        session,
+        project,
+        collection,
+        tokenId
+      );
+      console.log('metadata', metadata);
       return performCrossChainTransfer(
         session,
         toChain,
@@ -37,13 +62,6 @@ export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
         amount,
         serializeTokenMetadata(metadata)
       );
-    },
-    getMetadata: (project: string, collection: string, tokenId: number) => {
-      return session.query<TokenMetadata>('megayours.metadata', {
-        project,
-        collection,
-        token_id: tokenId,
-      });
     },
   });
 };
