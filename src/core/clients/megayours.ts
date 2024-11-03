@@ -26,7 +26,7 @@ const fetchMetadata = async (
   collection: string,
   tokenId: number
 ) => {
-  return session.query<TokenMetadata>('megayours.metadata', {
+  return session.query<TokenMetadata>('yours.metadata', {
     project,
     collection,
     token_id: tokenId,

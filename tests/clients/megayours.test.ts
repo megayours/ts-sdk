@@ -79,7 +79,7 @@ describe('createMegaYoursClient', () => {
 
       await client.getMetadata(mockProject, mockCollection, mockTokenId);
 
-      expect(mockSession.query).toHaveBeenCalledWith('megayours.metadata', {
+      expect(mockSession.query).toHaveBeenCalledWith('yours.metadata', {
         project: mockProject,
         collection: mockCollection,
         token_id: mockTokenId,
