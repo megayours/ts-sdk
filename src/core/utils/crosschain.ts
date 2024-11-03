@@ -1,6 +1,7 @@
 import { IClient, RawGtv } from 'postchain-client';
 import {
   noopAuthenticator,
+  nop,
   op,
   Session,
   transactionBuilder,
@@ -17,6 +18,7 @@ export async function performCrossChainTransfer(
   return new Promise((resolve, reject) => {
     fromSession
       .transactionBuilder()
+      .add(nop())
       .add(op('yours.init_transfer', toAccountId, tokenId, amount, metadata), {
         onAnchoredHandler: (initData: any) => {
           if (!initData) {
