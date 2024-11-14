@@ -15,6 +15,7 @@ describe('Serialization', () => {
           blockchain_rid: Buffer.from('DEADBEEF', 'hex'),
         },
         collection: 'test collection',
+        type: 'yours',
       },
     };
 
@@ -50,6 +51,7 @@ describe('Serialization', () => {
           blockchain_rid: Buffer.from('DEADBEEF', 'hex'),
         },
         collection: 'test collection',
+        type: 'yours',
       },
     };
 

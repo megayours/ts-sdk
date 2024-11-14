@@ -5,6 +5,7 @@ export function serializeTokenMetadata(metadata: TokenMetadata): any[] {
     metadata.yours.modules,
     [metadata.yours.project.name, metadata.yours.project.blockchain_rid],
     metadata.yours.collection,
+    metadata.yours.type,
   ];
 
   const result: any[] = [

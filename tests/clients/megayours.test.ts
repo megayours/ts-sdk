@@ -38,6 +38,7 @@ describe('createMegaYoursClient', () => {
             blockchain_rid: Buffer.from('DEADBEEF', 'hex'),
           },
           collection: 'testCollection',
+          type: 'yours',
         },
         properties: {},
         name: 'Test Token',

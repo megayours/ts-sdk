@@ -9,6 +9,7 @@ export type YoursMetadata = {
   modules: string[];
   project: ProjectMetadata;
   collection: string;
+  type: string;
 };
 
 export type ProjectMetadata = {
