@@ -3,6 +3,7 @@ import type { IClient } from 'postchain-client';
 import { TokenMetadata } from '../types';
 import { performCrossChainTransfer } from '../utils/crosschain';
 import { serializeTokenMetadata } from '../utils';
+import { TokenBalance } from '../types/balance';
 
 export interface IMegaYoursClient extends Session {
   transferCrosschain(
@@ -17,7 +18,14 @@ export interface IMegaYoursClient extends Session {
     project: string,
     collection: string,
     tokenId: number
-  ): Promise<TokenMetadata>;
+  ): Promise<TokenMetadata | null>;
+  getTokenBalances(accountId: Buffer): Promise<TokenBalance[]>;
+  getTokenBalance(
+    accountId: Buffer,
+    project: string,
+    collection: string,
+    tokenId: number
+  ): Promise<TokenBalance | null>;
 }
 
 const fetchMetadata = async (
@@ -26,7 +34,7 @@ const fetchMetadata = async (
   collection: string,
   tokenId: number
 ) => {
-  return session.query<TokenMetadata>('yours.metadata', {
+  return session.query<TokenMetadata | null>('yours.metadata', {
     project,
     collection,
     token_id: tokenId,
@@ -53,7 +61,11 @@ export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
         collection,
         tokenId
       );
-      console.log('metadata', metadata);
+      if (!metadata) {
+        throw new Error(
+          `Token metadata not found for ${project}/${collection}/${tokenId}`
+        );
+      }
       return performCrossChainTransfer(
         session,
         toChain,
@@ -62,6 +74,24 @@ export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
         amount,
         serializeTokenMetadata(metadata)
       );
+    },
+    getTokenBalances: async (accountId: Buffer) => {
+      return session.query<TokenBalance[]>('yours.get_token_balances', {
+        account_id: accountId,
+      });
+    },
+    getTokenBalance: async (
+      accountId: Buffer,
+      project: string,
+      collection: string,
+      tokenId: number
+    ) => {
+      return session.query<TokenBalance | null>('yours.balance', {
+        account_id: accountId,
+        project,
+        collection,
+        token_id: tokenId,
+      });
     },
   });
 };
