@@ -1,7 +1,7 @@
 export type TokenBalance = {
   project: string;
   collection: string;
-  tokenId: number;
+  tokenId: bigint;
   type: string;
-  amount: number;
+  amount: bigint;
 };

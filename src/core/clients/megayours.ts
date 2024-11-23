@@ -11,20 +11,20 @@ export interface IMegaYoursClient extends Session {
     toAccountId: Buffer,
     project: string,
     collection: string,
-    tokenId: number,
-    amount: number
+    tokenId: bigint,
+    amount: bigint
   ): Promise<void>;
   getMetadata(
     project: string,
     collection: string,
-    tokenId: number
+    tokenId: bigint
   ): Promise<TokenMetadata | null>;
   getTokenBalances(accountId: Buffer): Promise<TokenBalance[]>;
   getTokenBalance(
     accountId: Buffer,
     project: string,
     collection: string,
-    tokenId: number
+    tokenId: bigint
   ): Promise<TokenBalance | null>;
 }
 
@@ -32,7 +32,7 @@ const fetchMetadata = async (
   session: Session,
   project: string,
   collection: string,
-  tokenId: number
+  tokenId: bigint
 ) => {
   return session.query<TokenMetadata | null>('yours.metadata', {
     project,
@@ -44,7 +44,7 @@ const fetchMetadata = async (
 export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
   return Object.freeze({
     ...session,
-    getMetadata: (project: string, collection: string, tokenId: number) => {
+    getMetadata: (project: string, collection: string, tokenId: bigint) => {
       return fetchMetadata(session, project, collection, tokenId);
     },
     transferCrosschain: async (
@@ -52,8 +52,8 @@ export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
       toAccountId: Buffer,
       project: string,
       collection: string,
-      tokenId: number,
-      amount: number
+      tokenId: bigint,
+      amount: bigint
     ) => {
       const metadata = await fetchMetadata(
         session,
@@ -84,7 +84,7 @@ export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
       accountId: Buffer,
       project: string,
       collection: string,
-      tokenId: number
+      tokenId: bigint
     ) => {
       return session.query<TokenBalance | null>('yours.balance', {
         account_id: accountId,

@@ -28,8 +28,8 @@ describe('createMegaYoursClient', () => {
     it('should call performCrossChainTransfer with the expected arguments', async () => {
       const mockToChain = {} as IClient;
       const mockToAccountId = Buffer.from('mockAccountId');
-      const mockTokenId = 123;
-      const mockAmount = 100;
+      const mockTokenId = BigInt(123);
+      const mockAmount = BigInt(100);
       const mockMetadata: TokenMetadata = {
         yours: {
           modules: [],
@@ -76,7 +76,7 @@ describe('createMegaYoursClient', () => {
     it('should call session.query with the expected arguments', async () => {
       const mockProject = 'testProject';
       const mockCollection = 'testCollection';
-      const mockTokenId = 456;
+      const mockTokenId = BigInt(456);
 
       await client.getMetadata(mockProject, mockCollection, mockTokenId);
 
