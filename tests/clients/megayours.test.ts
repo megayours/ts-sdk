@@ -4,7 +4,7 @@ import {
   createMegaYoursClient,
   IMegaYoursClient,
 } from '../../src/core/clients';
-import { TokenMetadata } from '../../src/core/types';
+import { Project, TokenMetadata } from '../../src/core/types';
 import { serializeTokenMetadata } from '../../src/core/utils';
 import { performCrossChainTransfer } from '../../src/core/utils/crosschain';
 
@@ -54,7 +54,7 @@ describe('createMegaYoursClient', () => {
       await client.transferCrosschain(
         mockToChain,
         mockToAccountId,
-        mockMetadata.yours.project.name,
+        mockMetadata.yours.project,
         mockMetadata.yours.collection,
         mockTokenId,
         mockAmount
@@ -74,14 +74,18 @@ describe('createMegaYoursClient', () => {
 
   describe('getMetadata', () => {
     it('should call session.query with the expected arguments', async () => {
-      const mockProject = 'testProject';
+      const mockProject: Project = {
+        name: 'mockProject',
+        blockchain_rid: Buffer.from('DEADBEEF', 'hex'),
+      };
       const mockCollection = 'testCollection';
       const mockTokenId = BigInt(456);
 
       await client.getMetadata(mockProject, mockCollection, mockTokenId);
 
       expect(mockSession.query).toHaveBeenCalledWith('yours.metadata', {
-        project: mockProject,
+        project_name: mockProject.name,
+        project_blockchain_rid: mockProject.blockchain_rid,
         collection: mockCollection,
         token_id: mockTokenId,
       });

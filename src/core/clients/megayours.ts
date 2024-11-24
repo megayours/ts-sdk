@@ -1,6 +1,6 @@
 import type { Session } from '@chromia/ft4';
 import type { IClient } from 'postchain-client';
-import { TokenMetadata } from '../types';
+import { Project, TokenMetadata } from '../types';
 import { performCrossChainTransfer } from '../utils/crosschain';
 import { serializeTokenMetadata } from '../utils';
 import { TokenBalance } from '../types/balance';
@@ -9,33 +9,39 @@ export interface IMegaYoursClient extends Session {
   transferCrosschain(
     toChain: IClient,
     toAccountId: Buffer,
-    project: string,
+    project: Project,
     collection: string,
     tokenId: bigint,
     amount: bigint
   ): Promise<void>;
   getMetadata(
-    project: string,
+    project: Project,
     collection: string,
     tokenId: bigint
   ): Promise<TokenMetadata | null>;
+  getMetadataByUid(uid: Buffer): Promise<TokenMetadata | null>;
   getTokenBalances(accountId: Buffer): Promise<TokenBalance[]>;
   getTokenBalance(
     accountId: Buffer,
-    project: string,
+    project: Project,
     collection: string,
     tokenId: bigint
+  ): Promise<TokenBalance | null>;
+  getTokenBalanceByUid(
+    accountId: Buffer,
+    uid: Buffer
   ): Promise<TokenBalance | null>;
 }
 
 const fetchMetadata = async (
   session: Session,
-  project: string,
+  project: Project,
   collection: string,
   tokenId: bigint
 ) => {
   return session.query<TokenMetadata | null>('yours.metadata', {
-    project,
+    project_name: project.name,
+    project_blockchain_rid: project.blockchain_rid,
     collection,
     token_id: tokenId,
   });
@@ -44,13 +50,18 @@ const fetchMetadata = async (
 export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
   return Object.freeze({
     ...session,
-    getMetadata: (project: string, collection: string, tokenId: bigint) => {
+    getMetadata: (project: Project, collection: string, tokenId: bigint) => {
       return fetchMetadata(session, project, collection, tokenId);
+    },
+    getMetadataByUid: async (uid: Buffer) => {
+      return session.query<TokenMetadata | null>('yours.metadata_by_uid', {
+        uid,
+      });
     },
     transferCrosschain: async (
       toChain: IClient,
       toAccountId: Buffer,
-      project: string,
+      project: Project,
       collection: string,
       tokenId: bigint,
       amount: bigint
@@ -82,15 +93,22 @@ export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
     },
     getTokenBalance: async (
       accountId: Buffer,
-      project: string,
+      project: Project,
       collection: string,
       tokenId: bigint
     ) => {
       return session.query<TokenBalance | null>('yours.balance', {
         account_id: accountId,
-        project,
+        project_name: project.name,
+        project_blockchain_rid: project.blockchain_rid,
         collection,
         token_id: tokenId,
+      });
+    },
+    getTokenBalanceByUid: async (accountId: Buffer, uid: Buffer) => {
+      return session.query<TokenBalance | null>('yours.balance_by_uid', {
+        account_id: accountId,
+        uid,
       });
     },
   });
