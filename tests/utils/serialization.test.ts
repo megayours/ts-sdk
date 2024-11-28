@@ -16,6 +16,7 @@ describe('Serialization', () => {
         },
         collection: 'test collection',
         type: 'yours',
+        blockchains: [Buffer.from('DEADBEEF', 'hex')],
       },
     };
 
@@ -36,6 +37,8 @@ describe('Serialization', () => {
     expect(project[1]).toEqual(metadata.yours.project.blockchain_rid);
 
     expect(yours[2]).toBe(metadata.yours.collection);
+    expect(yours[3]).toEqual(metadata.yours.type);
+    expect(yours[4]).toEqual(metadata.yours.blockchains);
   });
 
   it('should serialize TokenMetadata with null values', () => {
@@ -52,6 +55,7 @@ describe('Serialization', () => {
         },
         collection: 'test collection',
         type: 'yours',
+        blockchains: [Buffer.from('DEADBEEF', 'hex')],
       },
     };
 
@@ -71,5 +75,7 @@ describe('Serialization', () => {
     expect(project[0]).toBe(metadata.yours.project.name);
     expect(project[1]).toEqual(metadata.yours.project.blockchain_rid);
     expect(yours[2]).toBe(metadata.yours.collection);
+    expect(yours[3]).toEqual(metadata.yours.type);
+    expect(yours[4]).toEqual(metadata.yours.blockchains);
   });
 });

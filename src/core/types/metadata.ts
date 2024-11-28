@@ -10,6 +10,7 @@ export type YoursMetadata = {
   project: ProjectMetadata;
   collection: string;
   type: string;
+  blockchains: Buffer[];
 };
 
 export type ProjectMetadata = {
