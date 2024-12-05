@@ -4,6 +4,8 @@ import { Project, TokenMetadata } from '../types';
 import { performCrossChainTransfer } from '../utils/crosschain';
 import { serializeTokenMetadata } from '../utils';
 import { TokenBalance } from '../types/balance';
+import { TransferHistory } from '../types/history';
+import { Paginator } from '../utils/paginator';
 
 export interface IMegaYoursClient extends Session {
   transferCrosschain(
@@ -31,6 +33,12 @@ export interface IMegaYoursClient extends Session {
     accountId: Buffer,
     uid: Buffer
   ): Promise<TokenBalance | null>;
+  getTransferHistory(
+    accountId: Buffer,
+    type: 'received' | 'sent' | null,
+    pageSize: number | null,
+    initialPageCursor: string | null
+  ): Promise<Paginator<TransferHistory>>;
 }
 
 const fetchMetadata = async (
@@ -110,6 +118,38 @@ export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
         account_id: accountId,
         uid,
       });
+    },
+    getTransferHistory: async (
+      accountId: Buffer,
+      type: 'received' | 'sent' | null,
+      pageSize: number | null,
+      initialPageCursor: string | null
+    ) => {
+      const OUT_OF_PAGES = 'OUT_OF_PAGES';
+      const fetchNext = async (
+        currentCursor: string | null
+      ): Promise<Paginator<TransferHistory>> => {
+        if (currentCursor === OUT_OF_PAGES) {
+          // Out of data
+          return new Paginator(() => fetchNext(currentCursor), []);
+        }
+
+        const result = await session.query<{
+          data: TransferHistory[];
+          next_cursor: string | null;
+        }>('yours.get_transfer_history', {
+          account_id: accountId,
+          type,
+          page_size: pageSize,
+          page_cursor: currentCursor,
+        });
+
+        const nextCursor = result.next_cursor || OUT_OF_PAGES;
+
+        return new Paginator(() => fetchNext(nextCursor), result.data);
+      };
+
+      return fetchNext(initialPageCursor);
     },
   });
 };

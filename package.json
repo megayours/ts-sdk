@@ -1,6 +1,6 @@
 {
   "name": "@megayours/sdk",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "description": "SDK for connecting to MegaYours dapps",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
