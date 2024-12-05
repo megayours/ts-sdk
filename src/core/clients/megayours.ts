@@ -226,7 +226,7 @@ export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
     ) => {
       return createPaginator<Buffer>(
         (params) =>
-          session.query('yours_external.owners_account_ids', {
+          session.query('yours.external.owners_account_ids', {
             chain,
             contract,
             token_id,
@@ -243,7 +243,7 @@ export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
     ) => {
       return createPaginator<TokenBalance>(
         (params) =>
-          session.query('yours_external.get_tokens', {
+          session.query('yours.external.get_tokens', {
             account_id: accountId,
             ...params,
           }),
