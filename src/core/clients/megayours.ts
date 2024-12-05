@@ -6,8 +6,7 @@ import { serializeTokenMetadata } from '../utils';
 import { TokenBalance } from '../types/balance';
 import { TransferHistory } from '../types/history';
 import { Paginator } from '../utils/paginator';
-
-const OUT_OF_PAGES = 'OUT_OF_PAGES';
+import { createPaginator } from '../utils/paginator';
 
 export interface IMegaYoursClient extends Session {
   transferCrosschain(
@@ -24,7 +23,11 @@ export interface IMegaYoursClient extends Session {
     tokenId: bigint
   ): Promise<TokenMetadata | null>;
   getMetadataByUid(uid: Buffer): Promise<TokenMetadata | null>;
-  getTokenBalances(accountId: Buffer): Promise<TokenBalance[]>;
+  getTokenBalances(
+    accountId: Buffer,
+    pageSize?: number,
+    initialPageCursor?: string
+  ): Promise<Paginator<TokenBalance>>;
   getTokenBalance(
     accountId: Buffer,
     project: Project,
@@ -38,21 +41,33 @@ export interface IMegaYoursClient extends Session {
   getTransferHistoryByAccount(
     accountId: Buffer,
     type: 'received' | 'sent' | undefined,
-    pageSize: number | undefined,
-    initialPageCursor: string | undefined
+    pageSize?: number,
+    initialPageCursor?: string
   ): Promise<Paginator<TransferHistory>>;
   getTransferHistoryFromHeight(
     height: number,
-    pageSize: number | undefined,
-    initialPageCursor: string | undefined
+    pageSize?: number,
+    initialPageCursor?: string
   ): Promise<Paginator<TransferHistory>>;
   getTransferHistoryFromHeightByTokenUid(
     height: number,
     tokenUid: Buffer,
-    pageSize: number | undefined,
-    initialPageCursor: string | undefined
+    pageSize?: number,
+    initialPageCursor?: string
   ): Promise<Paginator<TransferHistory>>;
   getTransferHistoryEntry(rowid: number): Promise<TransferHistory | null>;
+  getExternalOwnersAccountIds(
+    chain: string,
+    contract: Buffer,
+    token_id: bigint,
+    pageSize?: number,
+    initialPageCursor?: string
+  ): Promise<Paginator<Buffer>>;
+  getExternalTokensByAccountId(
+    accountId: Buffer,
+    pageSize?: number,
+    initialPageCursor?: string
+  ): Promise<Paginator<TokenBalance>>;
 }
 
 const fetchMetadata = async (
@@ -108,10 +123,20 @@ export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
         serializeTokenMetadata(metadata)
       );
     },
-    getTokenBalances: async (accountId: Buffer) => {
-      return session.query<TokenBalance[]>('yours.get_token_balances', {
-        account_id: accountId,
-      });
+    getTokenBalances: (
+      accountId: Buffer,
+      pageSize?: number,
+      initialPageCursor?: string
+    ) => {
+      return createPaginator<TokenBalance>(
+        (params) =>
+          session.query('yours.get_token_balances', {
+            account_id: accountId,
+            ...params,
+          }),
+        pageSize,
+        initialPageCursor
+      );
     },
     getTokenBalance: async (
       accountId: Buffer,
@@ -135,97 +160,54 @@ export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
     },
 
     // Transfer history
-    getTransferHistoryByAccount: async (
+    getTransferHistoryByAccount: (
       accountId: Buffer,
       type: 'received' | 'sent' | undefined,
-      pageSize: number | undefined,
-      initialPageCursor: string | undefined
+      pageSize?: number,
+      initialPageCursor?: string
     ) => {
-      const fetchNext = async (
-        currentCursor: string | undefined
-      ): Promise<Paginator<TransferHistory>> => {
-        if (currentCursor === OUT_OF_PAGES) {
-          // Out of data
-          return new Paginator(() => fetchNext(currentCursor), []);
-        }
-
-        const result = await session.query<{
-          data: TransferHistory[];
-          next_cursor: string | null;
-        }>('yours.get_transfer_history', {
-          account_id: accountId,
-          type: type || null,
-          page_size: pageSize || null,
-          page_cursor: currentCursor || null,
-        });
-
-        const nextCursor = result.next_cursor || OUT_OF_PAGES;
-
-        return new Paginator(() => fetchNext(nextCursor), result.data);
-      };
-
-      return fetchNext(initialPageCursor);
+      return createPaginator<TransferHistory>(
+        (params) =>
+          session.query('yours.get_transfer_history', {
+            account_id: accountId,
+            type: type || null,
+            ...params,
+          }),
+        pageSize,
+        initialPageCursor
+      );
     },
     getTransferHistoryFromHeight: async (
       height: number,
-      pageSize: number | undefined,
-      initialPageCursor: string | undefined
+      pageSize?: number,
+      initialPageCursor?: string
     ) => {
-      const fetchNext = async (
-        currentCursor: string | undefined
-      ): Promise<Paginator<TransferHistory>> => {
-        if (currentCursor === OUT_OF_PAGES) {
-          // Out of data
-          return new Paginator(() => fetchNext(currentCursor), []);
-        }
-
-        const result = await session.query<{
-          data: TransferHistory[];
-          next_cursor: string | null;
-        }>('yours.get_transfer_history_from_height', {
-          height,
-          token_uid: null,
-          page_size: pageSize || null,
-          page_cursor: currentCursor || null,
-        });
-
-        const nextCursor = result.next_cursor || OUT_OF_PAGES;
-
-        return new Paginator(() => fetchNext(nextCursor), result.data);
-      };
-
-      return fetchNext(initialPageCursor);
+      return createPaginator<TransferHistory>(
+        (params) =>
+          session.query('yours.get_transfer_history_from_height', {
+            height,
+            ...params,
+          }),
+        pageSize,
+        initialPageCursor
+      );
     },
     getTransferHistoryFromHeightByTokenUid: async (
       height: number,
       tokenUid: Buffer,
-      pageSize: number | undefined,
-      initialPageCursor: string | undefined
+      pageSize?: number,
+      initialPageCursor?: string
     ) => {
-      const fetchNext = async (
-        currentCursor: string | undefined
-      ): Promise<Paginator<TransferHistory>> => {
-        if (currentCursor === OUT_OF_PAGES) {
-          // Out of data
-          return new Paginator(() => fetchNext(currentCursor), []);
-        }
-
-        const result = await session.query<{
-          data: TransferHistory[];
-          next_cursor: string | null;
-        }>('yours.get_transfer_history_from_height', {
-          height,
-          token_uid: tokenUid,
-          page_size: pageSize || null,
-          page_cursor: currentCursor || null,
-        });
-
-        const nextCursor = result.next_cursor || OUT_OF_PAGES;
-
-        return new Paginator(() => fetchNext(nextCursor), result.data);
-      };
-
-      return fetchNext(initialPageCursor);
+      return createPaginator<TransferHistory>(
+        (params) =>
+          session.query('yours.get_transfer_history_from_height', {
+            height,
+            token_uid: tokenUid,
+            ...params,
+          }),
+        pageSize,
+        initialPageCursor
+      );
     },
     getTransferHistoryEntry: async (rowid: number) => {
       return session.query<TransferHistory | null>(
@@ -233,6 +215,40 @@ export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
         {
           rowid,
         }
+      );
+    },
+    getExternalOwnersAccountIds: async (
+      chain: string,
+      contract: Buffer,
+      token_id: bigint,
+      pageSize?: number,
+      initialPageCursor?: string
+    ) => {
+      return createPaginator<Buffer>(
+        (params) =>
+          session.query('yours_external.owners_account_ids', {
+            chain,
+            contract,
+            token_id,
+            ...params,
+          }),
+        pageSize,
+        initialPageCursor
+      );
+    },
+    getExternalTokensByAccountId: async (
+      accountId: Buffer,
+      pageSize?: number,
+      initialPageCursor?: string
+    ) => {
+      return createPaginator<TokenBalance>(
+        (params) =>
+          session.query('yours_external.get_tokens', {
+            account_id: accountId,
+            ...params,
+          }),
+        pageSize,
+        initialPageCursor
       );
     },
   });
