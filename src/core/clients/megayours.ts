@@ -7,6 +7,8 @@ import { TokenBalance } from '../types/balance';
 import { TransferHistory } from '../types/history';
 import { Paginator } from '../utils/paginator';
 
+const OUT_OF_PAGES = 'OUT_OF_PAGES';
+
 export interface IMegaYoursClient extends Session {
   transferCrosschain(
     toChain: IClient,
@@ -33,12 +35,24 @@ export interface IMegaYoursClient extends Session {
     accountId: Buffer,
     uid: Buffer
   ): Promise<TokenBalance | null>;
-  getTransferHistory(
+  getTransferHistoryByAccount(
     accountId: Buffer,
-    type: 'received' | 'sent' | null,
-    pageSize: number | null,
-    initialPageCursor: string | null
+    type: 'received' | 'sent' | undefined,
+    pageSize: number | undefined,
+    initialPageCursor: string | undefined
   ): Promise<Paginator<TransferHistory>>;
+  getTransferHistoryFromHeight(
+    height: number,
+    pageSize: number | undefined,
+    initialPageCursor: string | undefined
+  ): Promise<Paginator<TransferHistory>>;
+  getTransferHistoryFromHeightByTokenUid(
+    height: number,
+    tokenUid: Buffer,
+    pageSize: number | undefined,
+    initialPageCursor: string | undefined
+  ): Promise<Paginator<TransferHistory>>;
+  getTransferHistoryEntry(rowid: number): Promise<TransferHistory | null>;
 }
 
 const fetchMetadata = async (
@@ -119,15 +133,16 @@ export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
         uid,
       });
     },
-    getTransferHistory: async (
+
+    // Transfer history
+    getTransferHistoryByAccount: async (
       accountId: Buffer,
-      type: 'received' | 'sent' | null,
-      pageSize: number | null,
-      initialPageCursor: string | null
+      type: 'received' | 'sent' | undefined,
+      pageSize: number | undefined,
+      initialPageCursor: string | undefined
     ) => {
-      const OUT_OF_PAGES = 'OUT_OF_PAGES';
       const fetchNext = async (
-        currentCursor: string | null
+        currentCursor: string | undefined
       ): Promise<Paginator<TransferHistory>> => {
         if (currentCursor === OUT_OF_PAGES) {
           // Out of data
@@ -139,9 +154,9 @@ export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
           next_cursor: string | null;
         }>('yours.get_transfer_history', {
           account_id: accountId,
-          type,
-          page_size: pageSize,
-          page_cursor: currentCursor,
+          type: type || null,
+          page_size: pageSize || null,
+          page_cursor: currentCursor || null,
         });
 
         const nextCursor = result.next_cursor || OUT_OF_PAGES;
@@ -150,6 +165,75 @@ export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
       };
 
       return fetchNext(initialPageCursor);
+    },
+    getTransferHistoryFromHeight: async (
+      height: number,
+      pageSize: number | undefined,
+      initialPageCursor: string | undefined
+    ) => {
+      const fetchNext = async (
+        currentCursor: string | undefined
+      ): Promise<Paginator<TransferHistory>> => {
+        if (currentCursor === OUT_OF_PAGES) {
+          // Out of data
+          return new Paginator(() => fetchNext(currentCursor), []);
+        }
+
+        const result = await session.query<{
+          data: TransferHistory[];
+          next_cursor: string | null;
+        }>('yours.get_transfer_history_from_height', {
+          height,
+          token_uid: null,
+          page_size: pageSize || null,
+          page_cursor: currentCursor || null,
+        });
+
+        const nextCursor = result.next_cursor || OUT_OF_PAGES;
+
+        return new Paginator(() => fetchNext(nextCursor), result.data);
+      };
+
+      return fetchNext(initialPageCursor);
+    },
+    getTransferHistoryFromHeightByTokenUid: async (
+      height: number,
+      tokenUid: Buffer,
+      pageSize: number | undefined,
+      initialPageCursor: string | undefined
+    ) => {
+      const fetchNext = async (
+        currentCursor: string | undefined
+      ): Promise<Paginator<TransferHistory>> => {
+        if (currentCursor === OUT_OF_PAGES) {
+          // Out of data
+          return new Paginator(() => fetchNext(currentCursor), []);
+        }
+
+        const result = await session.query<{
+          data: TransferHistory[];
+          next_cursor: string | null;
+        }>('yours.get_transfer_history_from_height', {
+          height,
+          token_uid: tokenUid,
+          page_size: pageSize || null,
+          page_cursor: currentCursor || null,
+        });
+
+        const nextCursor = result.next_cursor || OUT_OF_PAGES;
+
+        return new Paginator(() => fetchNext(nextCursor), result.data);
+      };
+
+      return fetchNext(initialPageCursor);
+    },
+    getTransferHistoryEntry: async (rowid: number) => {
+      return session.query<TransferHistory | null>(
+        'yours.get_transfer_history_entry',
+        {
+          rowid,
+        }
+      );
     },
   });
 };
