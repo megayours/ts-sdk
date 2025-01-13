@@ -3,7 +3,7 @@ import { Project } from './project';
 export type TokenBalance = {
   project: Project;
   collection: string;
-  tokenId: bigint;
+  token_id: bigint;
   type: string;
   amount: bigint;
 };
