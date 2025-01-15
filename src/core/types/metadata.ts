@@ -32,6 +32,6 @@ export type TokenMetadata = {
   name: string;
   yours: YoursMetadata;
   properties: {
-    [key: string]: string | number | boolean | Property;
+    [key: string]: string | number | boolean | Property | Property[];
   };
 };
