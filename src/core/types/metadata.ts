@@ -19,6 +19,7 @@ export type ProjectMetadata = {
 };
 
 export type Property = {
+  trait_type?: string;
   name?: string;
   value: RawGtv;
   display_value?: string;
