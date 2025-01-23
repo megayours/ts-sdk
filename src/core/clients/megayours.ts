@@ -8,15 +8,7 @@ import { TransferHistory } from '../types/history';
 import { Paginator } from '../utils/paginator';
 import { createPaginator } from '../utils/paginator';
 
-export interface IMegaYoursClient extends Session {
-  transferCrosschain(
-    toChain: IClient,
-    toAccountId: Buffer,
-    project: Project,
-    collection: string,
-    tokenId: bigint,
-    amount: bigint
-  ): Promise<void>;
+export interface IMegaYoursQueryClient extends IClient {
   getMetadata(
     project: Project,
     collection: string,
@@ -70,13 +62,24 @@ export interface IMegaYoursClient extends Session {
   ): Promise<Paginator<TokenBalance>>;
 }
 
+export interface IMegaYoursClient extends Session, IMegaYoursQueryClient {
+  transferCrosschain(
+    toChain: IClient,
+    toAccountId: Buffer,
+    project: Project,
+    collection: string,
+    tokenId: bigint,
+    amount: bigint
+  ): Promise<void>;
+}
+
 const fetchMetadata = async (
-  session: Session,
+  client: IClient,
   project: Project,
   collection: string,
   tokenId: bigint
 ) => {
-  return session.query<TokenMetadata | null>('yours.metadata', {
+  return client.query<TokenMetadata | null>('yours.metadata', {
     project_name: project.name,
     project_blockchain_rid: project.blockchain_rid,
     collection,
@@ -84,44 +87,18 @@ const fetchMetadata = async (
   });
 };
 
-export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
+export const createMegaYoursQueryClient = (
+  client: IClient
+): IMegaYoursQueryClient => {
   return Object.freeze({
-    ...session,
+    ...client,
     getMetadata: (project: Project, collection: string, tokenId: bigint) => {
-      return fetchMetadata(session, project, collection, tokenId);
+      return fetchMetadata(client, project, collection, tokenId);
     },
     getMetadataByUid: async (uid: Buffer) => {
-      return session.query<TokenMetadata | null>('yours.metadata_by_uid', {
+      return client.query<TokenMetadata | null>('yours.metadata_by_uid', {
         uid,
       });
-    },
-    transferCrosschain: async (
-      toChain: IClient,
-      toAccountId: Buffer,
-      project: Project,
-      collection: string,
-      tokenId: bigint,
-      amount: bigint
-    ) => {
-      const metadata = await fetchMetadata(
-        session,
-        project,
-        collection,
-        tokenId
-      );
-      if (!metadata) {
-        throw new Error(
-          `Token metadata not found for ${project}/${collection}/${tokenId}`
-        );
-      }
-      return performCrossChainTransfer(
-        session,
-        toChain,
-        toAccountId,
-        tokenId,
-        amount,
-        serializeTokenMetadata(metadata)
-      );
     },
     getTokenBalances: (
       accountId: Buffer,
@@ -130,7 +107,7 @@ export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
     ) => {
       return createPaginator<TokenBalance>(
         (params) =>
-          session.query('yours.get_token_balances', {
+          client.query('yours.get_token_balances', {
             account_id: accountId,
             ...params,
           }),
@@ -144,7 +121,7 @@ export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
       collection: string,
       tokenId: bigint
     ) => {
-      return session.query<TokenBalance | null>('yours.balance', {
+      return client.query<TokenBalance | null>('yours.balance', {
         account_id: accountId,
         project_name: project.name,
         project_blockchain_rid: project.blockchain_rid,
@@ -153,7 +130,7 @@ export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
       });
     },
     getTokenBalanceByUid: async (accountId: Buffer, uid: Buffer) => {
-      return session.query<TokenBalance | null>('yours.balance_by_uid', {
+      return client.query<TokenBalance | null>('yours.balance_by_uid', {
         account_id: accountId,
         uid,
       });
@@ -168,7 +145,7 @@ export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
     ) => {
       return createPaginator<TransferHistory>(
         (params) =>
-          session.query('yours.get_transfer_history', {
+          client.query('yours.get_transfer_history', {
             account_id: accountId,
             type: type || null,
             ...params,
@@ -184,7 +161,7 @@ export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
     ) => {
       return createPaginator<TransferHistory>(
         (params) =>
-          session.query('yours.get_transfer_history_from_height', {
+          client.query('yours.get_transfer_history_from_height', {
             height,
             ...params,
           }),
@@ -200,7 +177,7 @@ export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
     ) => {
       return createPaginator<TransferHistory>(
         (params) =>
-          session.query('yours.get_transfer_history_from_height', {
+          client.query('yours.get_transfer_history_from_height', {
             height,
             token_uid: tokenUid,
             ...params,
@@ -210,7 +187,7 @@ export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
       );
     },
     getTransferHistoryEntry: async (rowid: number) => {
-      return session.query<TransferHistory | null>(
+      return client.query<TransferHistory | null>(
         'yours.get_transfer_history_entry',
         {
           rowid,
@@ -226,7 +203,7 @@ export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
     ) => {
       return createPaginator<Buffer>(
         (params) =>
-          session.query('yours.external.owners_account_ids', {
+          client.query('yours.external.owners_account_ids', {
             chain,
             contract,
             token_id,
@@ -243,12 +220,47 @@ export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
     ) => {
       return createPaginator<TokenBalance>(
         (params) =>
-          session.query('yours.external.get_tokens', {
+          client.query('yours.external.get_tokens', {
             account_id: accountId,
             ...params,
           }),
         pageSize,
         initialPageCursor
+      );
+    },
+  });
+};
+
+export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
+  return Object.freeze({
+    ...createMegaYoursQueryClient(session.client),
+    ...session,
+    transferCrosschain: async (
+      toChain: IClient,
+      toAccountId: Buffer,
+      project: Project,
+      collection: string,
+      tokenId: bigint,
+      amount: bigint
+    ) => {
+      const metadata = await fetchMetadata(
+        session.client,
+        project,
+        collection,
+        tokenId
+      );
+      if (!metadata) {
+        throw new Error(
+          `Token metadata not found for ${project}/${collection}/${tokenId}`
+        );
+      }
+      return performCrossChainTransfer(
+        session,
+        toChain,
+        toAccountId,
+        tokenId,
+        amount,
+        serializeTokenMetadata(metadata)
       );
     },
   });

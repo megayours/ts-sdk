@@ -15,12 +15,17 @@ jest.mock('../../src/core/utils');
 describe('createMegaYoursClient', () => {
   let mockSession: jest.Mocked<Session>;
   let client: IMegaYoursClient;
+  let mockPcClient: jest.Mocked<IClient>;
 
   beforeEach(() => {
+    mockPcClient = {
+      query: jest.fn(),
+    } as unknown as jest.Mocked<IClient>;
+
     mockSession = {
       query: jest.fn(),
+      client: mockPcClient,
     } as unknown as jest.Mocked<Session>;
-
     client = createMegaYoursClient(mockSession);
   });
 
@@ -50,7 +55,7 @@ describe('createMegaYoursClient', () => {
         mockSerializedMetadata
       );
 
-      (mockSession.query as jest.Mock).mockResolvedValue(mockMetadata);
+      mockPcClient.query.mockResolvedValue(mockMetadata);
 
       await client.transferCrosschain(
         mockToChain,
@@ -74,7 +79,7 @@ describe('createMegaYoursClient', () => {
   });
 
   describe('getMetadata', () => {
-    it('should call session.query with the expected arguments', async () => {
+    it('should call client.query with the expected arguments', async () => {
       const mockProject: Project = {
         name: 'mockProject',
         blockchain_rid: Buffer.from('DEADBEEF', 'hex'),
@@ -84,7 +89,7 @@ describe('createMegaYoursClient', () => {
 
       await client.getMetadata(mockProject, mockCollection, mockTokenId);
 
-      expect(mockSession.query).toHaveBeenCalledWith('yours.metadata', {
+      expect(mockPcClient.query).toHaveBeenCalledWith('yours.metadata', {
         project_name: mockProject.name,
         project_blockchain_rid: mockProject.blockchain_rid,
         collection: mockCollection,
