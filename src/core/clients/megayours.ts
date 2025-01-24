@@ -1,6 +1,6 @@
 import type { Session } from '@chromia/ft4';
 import type { IClient } from 'postchain-client';
-import { Project, TokenMetadata } from '../types';
+import { Project, Token, TokenMetadata } from '../types';
 import { performCrossChainTransfer } from '../utils/crosschain';
 import { serializeTokenMetadata } from '../utils';
 import { TokenBalance } from '../types/balance';
@@ -9,6 +9,12 @@ import { Paginator } from '../utils/paginator';
 import { createPaginator } from '../utils/paginator';
 
 export interface IMegaYoursQueryClient extends IClient {
+  getToken(
+    project: Project,
+    collection: string,
+    tokenId: bigint
+  ): Promise<Token | null>;
+  getTokenByUid(uid: Buffer): Promise<Token | null>;
   getMetadata(
     project: Project,
     collection: string,
@@ -92,6 +98,19 @@ export const createMegaYoursQueryClient = (
 ): IMegaYoursQueryClient => {
   return Object.freeze({
     ...client,
+    getToken: async (project: Project, collection: string, tokenId: bigint) => {
+      return client.query<Token | null>('yours.get_token_info', {
+        project_name: project.name,
+        project_blockchain_rid: project.blockchain_rid,
+        collection,
+        token_id: tokenId,
+      });
+    },
+    getTokenByUid: async (uid: Buffer) => {
+      return client.query<Token | null>('yours.get_token_info_by_uid', {
+        uid,
+      });
+    },
     getMetadata: (project: Project, collection: string, tokenId: bigint) => {
       return fetchMetadata(client, project, collection, tokenId);
     },

@@ -5,4 +5,5 @@ export type Token = {
   collection: string;
   id: bigint;
   name: string;
+  uid: Buffer;
 };
