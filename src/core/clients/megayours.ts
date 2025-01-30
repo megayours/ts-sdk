@@ -36,6 +36,11 @@ export interface IMegaYoursQueryClient extends IClient {
     accountId: Buffer,
     uid: Buffer
   ): Promise<TokenBalance | null>;
+  getAllTransferHistory(
+    type: 'received' | 'sent' | undefined,
+    pageSize?: number,
+    initialPageCursor?: string
+  ): Promise<Paginator<TransferHistory>>;
   getTransferHistoryByAccount(
     accountId: Buffer,
     type: 'received' | 'sent' | undefined,
@@ -156,6 +161,21 @@ export const createMegaYoursQueryClient = (
     },
 
     // Transfer history
+    getAllTransferHistory: (
+      type: 'received' | 'sent' | undefined,
+      pageSize?: number,
+      initialPageCursor?: string
+    ) => {
+      return createPaginator<TransferHistory>(
+        (params) =>
+          client.query('yours.get_all_transfer_history', {
+            type: type || null,
+            ...params,
+          }),
+        pageSize,
+        initialPageCursor
+      );
+    },
     getTransferHistoryByAccount: (
       accountId: Buffer,
       type: 'received' | 'sent' | undefined,
