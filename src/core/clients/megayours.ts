@@ -9,6 +9,7 @@ import { Paginator } from '../utils/paginator';
 import { createPaginator } from '../utils/paginator';
 
 export interface IMegaYoursQueryClient extends IClient {
+  getSupportedModules(): Promise<string[]>;
   getToken(
     project: Project,
     collection: string,
@@ -103,6 +104,9 @@ export const createMegaYoursQueryClient = (
 ): IMegaYoursQueryClient => {
   return Object.freeze({
     ...client,
+    getSupportedModules: async () => {
+      return client.query<string[]>('yours.get_supported_modules');
+    },
     getToken: async (project: Project, collection: string, tokenId: bigint) => {
       return client.query<Token | null>('yours.get_token_info', {
         project_name: project.name,
