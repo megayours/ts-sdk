@@ -8,6 +8,12 @@ import { TransferHistory } from '../types/history';
 import { Paginator } from '../utils/paginator';
 import { createPaginator } from '../utils/paginator';
 
+type TokenBalancesArgs = {
+  accountId?: Buffer;
+  project?: Project;
+  collection?: string;
+};
+
 export interface IMegaYoursQueryClient extends IClient {
   getSupportedModules(): Promise<string[]>;
   getToken(
@@ -23,7 +29,7 @@ export interface IMegaYoursQueryClient extends IClient {
   ): Promise<TokenMetadata | null>;
   getMetadataByUid(uid: Buffer): Promise<TokenMetadata | null>;
   getTokenBalances(
-    accountId: Buffer,
+    params: TokenBalancesArgs,
     pageSize?: number,
     initialPageCursor?: string
   ): Promise<Paginator<TokenBalance>>;
@@ -129,14 +135,17 @@ export const createMegaYoursQueryClient = (
       });
     },
     getTokenBalances: (
-      accountId: Buffer,
+      args: TokenBalancesArgs,
       pageSize?: number,
       initialPageCursor?: string
     ) => {
       return createPaginator<TokenBalance>(
         (params) =>
           client.query('yours.get_token_balances', {
-            account_id: accountId,
+            account_id: args.accountId || null,
+            project_blockchain_rid: args.project?.blockchain_rid || null,
+            project_name: args.project?.name || null,
+            collection: args.collection || null,
             ...params,
           }),
         pageSize,
