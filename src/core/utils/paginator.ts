@@ -37,6 +37,10 @@ export function createPaginator<T>(
       page_cursor: currentCursor || null,
     });
 
+    if (!result) {
+      return new Paginator(() => fetchNext(OUT_OF_PAGES), []);
+    }
+
     const nextCursor = result.next_cursor || OUT_OF_PAGES;
     return new Paginator(() => fetchNext(nextCursor), result.data);
   };
