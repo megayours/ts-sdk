@@ -14,6 +14,14 @@ type TokenBalancesArgs = {
   collection?: string;
 };
 
+type HistoryArgs = {
+  accountId?: Buffer;
+  project?: Project;
+  collection?: string;
+  tokenUid?: Buffer;
+  type?: 'received' | 'sent' | 'external_received' | 'external_sent';
+};
+
 export interface IMegaYoursQueryClient extends IClient {
   getSupportedModules(): Promise<string[]>;
   getToken(
@@ -48,9 +56,8 @@ export interface IMegaYoursQueryClient extends IClient {
     pageSize?: number,
     initialPageCursor?: string
   ): Promise<Paginator<TransferHistory>>;
-  getTransferHistoryByAccount(
-    accountId: Buffer,
-    type: 'received' | 'sent' | undefined,
+  getTransferHistory(
+    args: HistoryArgs,
     pageSize?: number,
     initialPageCursor?: string
   ): Promise<Paginator<TransferHistory>>;
@@ -189,17 +196,20 @@ export const createMegaYoursQueryClient = (
         initialPageCursor
       );
     },
-    getTransferHistoryByAccount: (
-      accountId: Buffer,
-      type: 'received' | 'sent' | undefined,
+    getTransferHistory: (
+      args: HistoryArgs,
       pageSize?: number,
       initialPageCursor?: string
     ) => {
       return createPaginator<TransferHistory>(
         (params) =>
           client.query('yours.get_transfer_history', {
-            account_id: accountId,
-            type: type || null,
+            account_id: args.accountId || null,
+            project_blockchain_rid: args.project?.blockchain_rid || null,
+            project_name: args.project?.name || null,
+            collection: args.collection || null,
+            token_uid: args.tokenUid || null,
+            type: args.type || null,
             ...params,
           }),
         pageSize,
