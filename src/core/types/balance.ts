@@ -7,4 +7,5 @@ export type TokenBalance = {
   uid: Buffer;
   type: string;
   amount: bigint;
+  account_id: Buffer;
 };
