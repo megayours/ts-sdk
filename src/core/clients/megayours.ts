@@ -12,6 +12,7 @@ type TokenBalancesArgs = {
   accountId?: Buffer;
   project?: Project;
   collection?: string;
+  tokenId?: bigint;
 };
 
 type HistoryArgs = {
@@ -153,6 +154,7 @@ export const createMegaYoursQueryClient = (
             project_blockchain_rid: args.project?.blockchain_rid || null,
             project_name: args.project?.name || null,
             collection: args.collection || null,
+            token_id: args.tokenId || null,
             ...params,
           }),
         pageSize,
