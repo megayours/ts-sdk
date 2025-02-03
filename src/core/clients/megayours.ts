@@ -3,28 +3,14 @@ import type { IClient } from 'postchain-client';
 import { Project, Token, TokenMetadata } from '../types';
 import { performCrossChainTransfer } from '../utils/crosschain';
 import { serializeTokenMetadata } from '../utils';
-import { TokenBalance } from '../types/balance';
-import { TransferHistory } from '../types/history';
+import { TokenBalance, TokenBalancesArgs } from '../types/balance';
+import { HistoryArgs, TransferHistory } from '../types/history';
 import { Paginator } from '../utils/paginator';
 import { createPaginator } from '../utils/paginator';
-
-type TokenBalancesArgs = {
-  accountId?: Buffer;
-  project?: Project;
-  collection?: string;
-  tokenId?: bigint;
-};
-
-type HistoryArgs = {
-  accountId?: Buffer;
-  project?: Project;
-  collection?: string;
-  tokenUid?: Buffer;
-  type?: 'received' | 'sent' | 'external_received' | 'external_sent';
-};
+import { Module } from '../types/modules';
 
 export interface IMegaYoursQueryClient extends IClient {
-  getSupportedModules(): Promise<string[]>;
+  getSupportedModules(): Promise<Module[]>;
   getToken(
     project: Project,
     collection: string,
@@ -52,24 +38,8 @@ export interface IMegaYoursQueryClient extends IClient {
     accountId: Buffer,
     uid: Buffer
   ): Promise<TokenBalance | null>;
-  getAllTransferHistory(
-    type: 'received' | 'sent' | undefined,
-    pageSize?: number,
-    initialPageCursor?: string
-  ): Promise<Paginator<TransferHistory>>;
   getTransferHistory(
     args: HistoryArgs,
-    pageSize?: number,
-    initialPageCursor?: string
-  ): Promise<Paginator<TransferHistory>>;
-  getTransferHistoryFromHeight(
-    height: number,
-    pageSize?: number,
-    initialPageCursor?: string
-  ): Promise<Paginator<TransferHistory>>;
-  getTransferHistoryFromHeightByTokenUid(
-    height: number,
-    tokenUid: Buffer,
     pageSize?: number,
     initialPageCursor?: string
   ): Promise<Paginator<TransferHistory>>;
@@ -119,7 +89,7 @@ export const createMegaYoursQueryClient = (
   return Object.freeze({
     ...client,
     getSupportedModules: async () => {
-      return client.query<string[]>('yours.get_supported_modules');
+      return client.query<Module[]>('yours.get_supported_modules');
     },
     getToken: async (project: Project, collection: string, tokenId: bigint) => {
       return client.query<Token | null>('yours.get_token_info', {
@@ -150,11 +120,12 @@ export const createMegaYoursQueryClient = (
       return createPaginator<TokenBalance>(
         (params) =>
           client.query('yours.get_token_balances', {
-            account_id: args.accountId || null,
+            account_id: args.account_id || null,
             project_blockchain_rid: args.project?.blockchain_rid || null,
             project_name: args.project?.name || null,
             collection: args.collection || null,
-            token_id: args.tokenId || null,
+            token_id: args.token_id || null,
+            token_uid: args.token_uid || null,
             ...params,
           }),
         pageSize,
@@ -183,21 +154,6 @@ export const createMegaYoursQueryClient = (
     },
 
     // Transfer history
-    getAllTransferHistory: (
-      type: 'received' | 'sent' | undefined,
-      pageSize?: number,
-      initialPageCursor?: string
-    ) => {
-      return createPaginator<TransferHistory>(
-        (params) =>
-          client.query('yours.get_all_transfer_history', {
-            type: type || null,
-            ...params,
-          }),
-        pageSize,
-        initialPageCursor
-      );
-    },
     getTransferHistory: (
       args: HistoryArgs,
       pageSize?: number,
@@ -206,44 +162,13 @@ export const createMegaYoursQueryClient = (
       return createPaginator<TransferHistory>(
         (params) =>
           client.query('yours.get_transfer_history', {
-            account_id: args.accountId || null,
+            account_id: args.account_id || null,
             project_blockchain_rid: args.project?.blockchain_rid || null,
             project_name: args.project?.name || null,
             collection: args.collection || null,
-            token_uid: args.tokenUid || null,
+            token_uid: args.token_uid || null,
             type: args.type || null,
-            ...params,
-          }),
-        pageSize,
-        initialPageCursor
-      );
-    },
-    getTransferHistoryFromHeight: async (
-      height: number,
-      pageSize?: number,
-      initialPageCursor?: string
-    ) => {
-      return createPaginator<TransferHistory>(
-        (params) =>
-          client.query('yours.get_transfer_history_from_height', {
-            height,
-            ...params,
-          }),
-        pageSize,
-        initialPageCursor
-      );
-    },
-    getTransferHistoryFromHeightByTokenUid: async (
-      height: number,
-      tokenUid: Buffer,
-      pageSize?: number,
-      initialPageCursor?: string
-    ) => {
-      return createPaginator<TransferHistory>(
-        (params) =>
-          client.query('yours.get_transfer_history_from_height', {
-            height,
-            token_uid: tokenUid,
+            from_height: args.from_height || null,
             ...params,
           }),
         pageSize,
