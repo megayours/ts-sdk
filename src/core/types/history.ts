@@ -5,6 +5,7 @@ export type HistoryArgs = {
   account_id?: Buffer;
   project?: Project;
   collection?: string;
+  token_id?: bigint;
   token_uid?: Buffer;
   from_height?: number;
   type?: 'received' | 'sent' | 'external_received' | 'external_sent';

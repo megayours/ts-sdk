@@ -166,6 +166,7 @@ export const createMegaYoursQueryClient = (
             project_blockchain_rid: args.project?.blockchain_rid || null,
             project_name: args.project?.name || null,
             collection: args.collection || null,
+            token_id: args.token_id || null,
             token_uid: args.token_uid || null,
             type: args.type || null,
             from_height: args.from_height || null,
