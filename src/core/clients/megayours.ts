@@ -75,10 +75,7 @@ export interface IMegaYoursClient extends IMegaYoursQueryClient, Session {
     amount: bigint
   ): Promise<void>;
 
-  resumeCrosschainTransfer(
-    transfer: PendingTransfer,
-    toChain: IClient
-  ): Promise<void>;
+  resumeCrosschainTransfer(transfer: PendingTransfer): Promise<void>;
 }
 
 const fetchMetadata = async (
@@ -282,11 +279,8 @@ export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
         serializeTokenMetadata(metadata)
       );
     },
-    resumeCrosschainTransfer: async (
-      transfer: PendingTransfer,
-      toChain: IClient
-    ) => {
-      return resumeCrossChainTransfer(session, transfer, toChain);
+    resumeCrosschainTransfer: async (transfer: PendingTransfer) => {
+      return resumeCrossChainTransfer(session, transfer);
     },
   });
 };

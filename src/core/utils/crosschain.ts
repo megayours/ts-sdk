@@ -112,10 +112,17 @@ export async function performCrossChainTransfer(
 
 export async function resumeCrossChainTransfer(
   fromSession: Session,
-  pendingTransfer: PendingTransfer,
-  toChain: IClient
+  pendingTransfer: PendingTransfer
 ) {
   const nodeUrlPool = fromSession.client.config.endpointPool.map((e) => e.url);
+  const targetBlockchainRid = pendingTransfer.tx[0][1][
+    pendingTransfer.op_index
+  ][1][0] as Buffer;
+  const toChain = await createClient({
+    directoryNodeUrlPool: nodeUrlPool,
+    blockchainRid: targetBlockchainRid.toString('hex'),
+  });
+
   const initTransferTxRid = getTransactionRid(pendingTransfer.tx);
   const iccfProof = await createIccfProof(
     nodeUrlPool,
