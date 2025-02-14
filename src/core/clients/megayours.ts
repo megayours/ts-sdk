@@ -1,13 +1,17 @@
 import type { Session } from '@chromia/ft4';
-import type { IClient } from 'postchain-client';
+import { gtv, type IClient, type RawGtx } from 'postchain-client';
 import { Project, Token, TokenMetadata } from '../types';
-import { performCrossChainTransfer } from '../utils/crosschain';
+import {
+  performCrossChainTransfer,
+  resumeCrossChainTransfer,
+} from '../utils/crosschain';
 import { serializeTokenMetadata } from '../utils';
 import { TokenBalance, TokenBalancesArgs } from '../types/balance';
 import { HistoryArgs, TransferHistory } from '../types/history';
 import { Paginator } from '../utils/paginator';
 import { createPaginator } from '../utils/paginator';
 import { Module } from '../types/modules';
+import { PendingTransfer } from '../types/crosschain';
 
 export interface IMegaYoursQueryClient extends IClient {
   getSupportedModules(): Promise<Module[]>;
@@ -56,9 +60,12 @@ export interface IMegaYoursQueryClient extends IClient {
     pageSize?: number,
     initialPageCursor?: string
   ): Promise<Paginator<TokenBalance>>;
+
+  // Get pending transfers
+  getPendingTransfers(accountId: Buffer): Promise<PendingTransfer[]>;
 }
 
-export interface IMegaYoursClient extends Session, IMegaYoursQueryClient {
+export interface IMegaYoursClient extends IMegaYoursQueryClient, Session {
   transferCrosschain(
     toChain: IClient,
     toAccountId: Buffer,
@@ -66,6 +73,11 @@ export interface IMegaYoursClient extends Session, IMegaYoursQueryClient {
     collection: string,
     tokenId: bigint,
     amount: bigint
+  ): Promise<void>;
+
+  resumeCrosschainTransfer(
+    transfer: PendingTransfer,
+    toChain: IClient
   ): Promise<void>;
 }
 
@@ -218,6 +230,23 @@ export const createMegaYoursQueryClient = (
         initialPageCursor
       );
     },
+
+    // Get pending transfers
+    getPendingTransfers: async (accountId: Buffer) => {
+      return client
+        .query<{ tx_data: Buffer; op_index: number }[]>(
+          'yours.get_pending_transfers_for_account',
+          {
+            account_id: accountId,
+          }
+        )
+        .then((res) =>
+          res.map((tx) => ({
+            tx: gtv.decode(tx.tx_data) as RawGtx,
+            op_index: tx.op_index,
+          }))
+        );
+    },
   });
 };
 
@@ -252,6 +281,12 @@ export const createMegaYoursClient = (session: Session): IMegaYoursClient => {
         amount,
         serializeTokenMetadata(metadata)
       );
+    },
+    resumeCrosschainTransfer: async (
+      transfer: PendingTransfer,
+      toChain: IClient
+    ) => {
+      return resumeCrossChainTransfer(session, transfer, toChain);
     },
   });
 };
