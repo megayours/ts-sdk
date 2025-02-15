@@ -60,11 +60,21 @@ jobs:
 
       - name: Commit package.json changes
         run: |
+          # Configure git
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
+
+          # Get the current branch name (main or master)
+          BRANCH_NAME=$(git remote show origin | grep 'HEAD branch' | cut -d' ' -f5)
+
+          # Fetch and checkout the main branch
+          git fetch origin $BRANCH_NAME
+          git checkout $BRANCH_NAME
+
+          # Apply changes and commit
           git add package.json
           git commit -m "chore: update package.json version to ${{ steps.get_version.outputs.VERSION }} [skip ci]"
-          git push
+          git push origin $BRANCH_NAME
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
