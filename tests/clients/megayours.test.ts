@@ -57,7 +57,7 @@ describe('createMegaYoursClient', () => {
 
       mockPcClient.query.mockResolvedValue(mockMetadata);
 
-      await client.transferCrosschain(
+      await client.crosschain.transfer(
         mockToChain,
         mockToAccountId,
         mockMetadata.yours.project,
@@ -87,7 +87,7 @@ describe('createMegaYoursClient', () => {
       const mockCollection = 'testCollection';
       const mockTokenId = BigInt(456);
 
-      await client.getMetadata(mockProject, mockCollection, mockTokenId);
+      await client.token.getMetadata(mockProject, mockCollection, mockTokenId);
 
       expect(mockPcClient.query).toHaveBeenCalledWith('yours.metadata', {
         project_name: mockProject.name,
