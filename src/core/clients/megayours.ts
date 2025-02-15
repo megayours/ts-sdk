@@ -65,7 +65,7 @@ export interface IMegaYoursQueryClient extends IClient {
   getPendingTransfers(accountId: Buffer): Promise<PendingTransfer[]>;
 }
 
-export interface IMegaYoursClient extends IMegaYoursQueryClient, Session {
+export interface IMegaYoursClient extends Session, IMegaYoursQueryClient {
   transferCrosschain(
     toChain: IClient,
     toAccountId: Buffer,
