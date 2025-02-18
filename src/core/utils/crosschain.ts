@@ -111,14 +111,14 @@ export async function performCrossChainTransfer(
 }
 
 export async function resumeCrossChainTransfer(
-  fromSession: Session,
+  sourceChain: IClient,
   pendingTransfer: PendingTransfer
 ) {
-  const nodeUrlPool = fromSession.client.config.endpointPool.map((e) => e.url);
+  const nodeUrlPool = sourceChain.config.endpointPool.map((e) => e.url);
   const targetBlockchainRid = pendingTransfer.tx[0][1][
     pendingTransfer.op_index
   ][1][0] as Buffer;
-  const toChain = await createClient({
+  const targetChain = await createClient({
     directoryNodeUrlPool: nodeUrlPool,
     blockchainRid: targetBlockchainRid.toString('hex'),
   });
@@ -129,8 +129,8 @@ export async function resumeCrossChainTransfer(
     initTransferTxRid,
     gtv.gtvHash(pendingTransfer.tx),
     pendingTransfer.tx[0][2], // signers
-    fromSession.client.config.blockchainRid,
-    toChain.config.blockchainRid
+    sourceChain.config.blockchainRid,
+    targetChain.config.blockchainRid
   );
 
   const applyTransferTx = {
@@ -142,16 +142,16 @@ export async function resumeCrossChainTransfer(
   };
 
   if (
-    !(await toChain.query<boolean>('yours.is_transfer_applied', {
+    !(await targetChain.query<boolean>('yours.is_transfer_applied', {
       tx_rid: initTransferTxRid,
       op_index: pendingTransfer.op_index,
     }))
   ) {
-    await toChain.sendTransaction(applyTransferTx);
+    await targetChain.sendTransaction(applyTransferTx);
   }
 
   const txGtx = {
-    blockchainRid: Buffer.from(toChain.config.blockchainRid, 'hex'),
+    blockchainRid: Buffer.from(targetChain.config.blockchainRid, 'hex'),
     operations: applyTransferTx.operations.map((op) => {
       return {
         opName: op.name,
@@ -169,24 +169,23 @@ export async function resumeCrossChainTransfer(
     applyTransferTxRid,
     gtv.gtvHash(rawApplyTransferTx),
     [], // no signers
-    toChain.config.blockchainRid,
-    fromSession.client.config.blockchainRid
+    targetChain.config.blockchainRid,
+    sourceChain.config.blockchainRid
   );
 
-  fromSession
-    .transactionBuilder()
-    .add(applyTransferIccfProof.iccfTx.operations[0], {
-      authenticator: noopAuthenticator,
-    })
-    .add(
+  const completeTransferTx = {
+    operations: [
+      applyTransferIccfProof.iccfTx.operations[0],
       op(
         'yours.complete_transfer',
         rawApplyTransferTx,
         pendingTransfer.op_index
       ),
-      { authenticator: noopAuthenticator }
-    )
-    .buildAndSend();
+    ],
+    signers: [],
+  };
+
+  await sourceChain.sendTransaction(completeTransferTx);
 }
 
 async function createIccfProof(

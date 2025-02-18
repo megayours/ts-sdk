@@ -4,7 +4,7 @@ import { Project } from '../../types';
 import { Session } from '@chromia/ft4';
 import {
   performCrossChainTransfer,
-  resumeCrossChainTransfer,
+  resumeCrossChainTransfer as resumeCrosschainTransfer,
 } from '../../utils/crosschain';
 import { serializeTokenMetadata } from '../../utils';
 import { fetchMetadata } from '../util/medatata';
@@ -88,6 +88,6 @@ export class CrosschainTransactionModule
   }
 
   async resumeTransfer(transfer: PendingTransfer): Promise<void> {
-    return resumeCrossChainTransfer(this.session, transfer);
+    return resumeCrosschainTransfer(this.session.client, transfer);
   }
 }
