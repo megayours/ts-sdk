@@ -176,11 +176,7 @@ export async function resumeCrossChainTransfer(
   const completeTransferTx = {
     operations: [
       applyTransferIccfProof.iccfTx.operations[0],
-      op(
-        'yours.complete_transfer',
-        rawApplyTransferTx,
-        pendingTransfer.op_index
-      ),
+      op('yours.complete_transfer', rawApplyTransferTx, 1),
     ],
     signers: [],
   };
